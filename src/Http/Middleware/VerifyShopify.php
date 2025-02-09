@@ -305,6 +305,7 @@ class VerifyShopify
                 'shop' => ShopDomain::fromRequest($request)->toNative(),
                 'target' => $target,
                 'host' => $request->get('host'),
+                'locale' => $request->get('locale'),
             ]
         );
     }
@@ -320,7 +321,7 @@ class VerifyShopify
     {
         return Redirect::route(
             Util::getShopifyConfig('route_names.authenticate'),
-            ['shop' => $shopDomain->toNative()]
+            ['shop' => $shopDomain->toNative(), 'host' => request('host'), 'locale' => request('locale')]
         );
     }
 
@@ -376,20 +377,9 @@ class VerifyShopify
      */
     protected function getAccessTokenFromRequest(Request $request): ?string
     {
-        if (Util::getShopifyConfig('turbo_enabled')) {
-            if ($request->bearerToken()) {
-                // Bearer tokens collect.
-                // Turbo does not refresh the page, values are attached to the same header.
-                $bearerTokens = Collection::make(explode(',', $request->header('Authorization', '')));
-                $newestToken = Str::substr(trim($bearerTokens->last()), 7);
-
-                return $newestToken;
-            }
-
-            return $request->get('token');
-        }
-
-        return $this->isApiRequest($request) ? $request->bearerToken() : $request->get('token');
+        return $this->isApiRequest($request)
+            ? $request->bearerToken()
+            : $request->get('token');
     }
 
     /**

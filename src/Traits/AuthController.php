@@ -64,10 +64,10 @@ trait AuthController
                 'shopify-app::auth.fullpage_redirect',
                 [
                     'apiKey' => Util::getShopifyConfig('api_key', $shopOrigin),
-                    'appBridgeVersion' => Util::getShopifyConfig('appbridge_version') ? '@'.config('shopify-app.appbridge_version') : '',
-                    'authUrl' => $result['url'],
+                    'url' => $result['url'],
                     'host' => $request->get('host'),
                     'shopDomain' => $shopDomain,
+                    'locale' => $request->get('locale'),
                 ]
             );
         } else {
@@ -77,6 +77,7 @@ trait AuthController
                 [
                     'shop' => $shopDomain->toNative(),
                     'host' => $request->get('host'),
+                    'locale' => $request->get('locale'),
                 ]
             );
         }
@@ -100,11 +101,16 @@ trait AuthController
             $params = Util::parseQueryString($query);
             $params['shop'] = $params['shop'] ?? $shopDomain->toNative() ?? '';
             $params['host'] = $request->get('host');
+            $params['locale'] = $request->get('locale');
             unset($params['token']);
 
             $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         } else {
-            $params = ['shop' => $shopDomain->toNative() ?? '', 'host' => $request->get('host')];
+            $params = [
+                'shop' => $shopDomain->toNative() ?? '',
+                'host' => $request->get('host'),
+                'locale' => $request->get('locale'),
+            ];
             $cleanTarget = trim(explode('?', $target)[0].'?'.http_build_query($params), '?');
         }
 
